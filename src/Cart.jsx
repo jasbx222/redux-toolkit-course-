@@ -13,9 +13,10 @@ import {
   Stack,
 } from "@mui/material";
 
+
+
 const Cart = () => {
   const cartItems = useSelector((state) => state.cart.cartItems);
-
   const dispatch = useDispatch();
 
   const handleSubmit = (e) => {
@@ -48,11 +49,38 @@ const Cart = () => {
       </Typography>
 
       <Stack spacing={2}>
-        { cartItems.map((item) => (
-          <Card key={item.id} sx={{ display: "flex", alignItems: "center", p: 1 }}>
-          
+        {cartItems.map((item) => (
+          <Card
+            key={item.id}
+            sx={{ display: "flex", alignItems: "center", p: 1 }}
+          >
             <CardContent sx={{ flex: 1 }}>
-              <Typography variant="h6">{item.title}</Typography>
+      
+               {item?.image?.[0] && (
+                               <Box
+                                 sx={{
+                                   width: "100%",
+                                   height: "140px",
+                                   borderRadius: "10px",
+                                   overflow: "hidden",
+                                   mb: 1,
+                                 }}
+                               >
+                                 <img
+                                   src={item.image[0].image_url}
+                                   alt={item.name}
+                                   style={{
+                                     width: "100%",
+                                     height: "100%",
+                                     objectFit: "cover",
+                                   }}
+                                 />
+                               </Box>
+                             )}
+
+              <Typography variant="h6">
+                {item.title || item.name}
+              </Typography>
               <Typography>${item.price}</Typography>
             </CardContent>
 
@@ -64,7 +92,9 @@ const Cart = () => {
               >
                 -
               </Button>
+
               <Typography mx={1}>{item.quantity}</Typography>
+
               <Button
                 size="small"
                 variant="outlined"
@@ -72,11 +102,12 @@ const Cart = () => {
               >
                 +
               </Button>
+
               <IconButton
                 color="error"
                 onClick={() => dispatch(removeFromCart(item.id))}
               >
-                {/* <DeleteIcon /> */}
+              Remove
               </IconButton>
             </CardActions>
           </Card>
@@ -88,6 +119,7 @@ const Cart = () => {
         color="primary"
         sx={{ mt: 3 }}
         onClick={handleSubmit}
+        fullWidth
       >
         Send Order
       </Button>

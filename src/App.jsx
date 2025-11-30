@@ -15,29 +15,38 @@ import {
   CardActions,
   IconButton,
   Badge,
-  useColorScheme,
 } from "@mui/material";
 
 
-function App() {
+
+import { useQuery } from "@tanstack/react-query";
+import { api } from "./api/api";
+
+export default function App() {
   const dispatch = useDispatch();
-  const totalQuantity = useSelector((state) => state.cart.totalQuantity);
-  const products = [
-    { id: 1, title: "Product 1", price: 20 },
-    { id: 2, title: "Product 2", price: 35 },
-    { id: 3, title: "Product 3", price: 15 },
-  ];
+  const cartItems = useSelector((state) => state.cart.cartItems);
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const res = await api.get("product?page=1&perPage=30");
+      return res.data;
+    },
+  });
 
   const [cartOpen, setCartOpen] = useState(false);
 
+  if (isLoading) return <Typography>Loading...</Typography>;
+  if (isError) return <Typography>Error loading products</Typography>;
+
   return (
     <div>
-      {/* Header */}
+      {/* ================= HEADER ================= */}
       <AppBar position="static">
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box display="flex" alignItems="center" gap={2}>
             <Typography variant="h6">MyStore</Typography>
-          
+
             <Button
               variant="outlined"
               color="inherit"
@@ -47,40 +56,57 @@ function App() {
             </Button>
           </Box>
 
-          <Box>
-            <Button color="inherit">Home</Button>
-            <Button color="inherit">Products</Button>
-
-            <IconButton
-              color="inherit"
-              onClick={() => setCartOpen(!cartOpen)}
-              sx={{ ml: 2 }}
-            >
-              <Badge badgeContent={totalQuantity} color="error">
-                {/* <ShoppingCartIcon
-                 /> */}
-              </Badge>
-            </IconButton>
-          </Box>
+          <IconButton color="inherit" onClick={() => setCartOpen(!cartOpen)}>
+            <Badge badgeContent={cartItems.length} color="error">
+             
+            </Badge>
+          </IconButton>
         </Toolbar>
       </AppBar>
 
-      {/* Cart */}
+      {/* ================= CART ================= */}
       {cartOpen && <Cart />}
 
+      {/* ================= PRODUCTS ================= */}
       <Box p={3}>
         <Typography variant="h5">Products</Typography>
+
         <Box display="flex" flexWrap="wrap" gap={2} mt={2}>
-          {products.map((product) => (
+          {data?.data?.map((product) => (
             <Card key={product.id} sx={{ width: 200 }}>
               <CardContent>
-                <Typography variant="h6">{product.title}</Typography>
+                {/* ✅ عرض أول صورة فقط بشكل آمن */}
+                {product?.image?.[0] && (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      height: "140px",
+                      borderRadius: "10px",
+                      overflow: "hidden",
+                      mb: 1,
+                    }}
+                  >
+                    <img
+                      src={product.image[0].image_url}
+                      alt={product.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </Box>
+                )}
+
+                <Typography variant="h6">{product.name}</Typography>
                 <Typography>${product.price}</Typography>
               </CardContent>
+
               <CardActions>
                 <Button
                   size="small"
                   variant="contained"
+                  fullWidth
                   onClick={() => dispatch(addToCart(product))}
                 >
                   Add to Cart
@@ -93,5 +119,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
